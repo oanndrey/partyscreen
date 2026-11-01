@@ -1,0 +1,3 @@
+# ScreenCaptureKit exige macOS 13+; com alvo menor a ponte Swift pede bibliotecas de compatibilidade
+[env]
+MACOSX_DEPLOYMENT_TARGET = "13.0"
