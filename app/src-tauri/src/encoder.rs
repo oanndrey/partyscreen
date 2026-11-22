@@ -168,6 +168,8 @@ fn encode_loop(
     let mut encoder = new_encoder(bitrate)?;
     // Na placa de vídeo o encoder depende do tamanho do quadro: criado no primeiro quadro
     let mut gpu: Option<crate::hw_encoder::HwEncoder> = None;
+    // Encoder da placa sendo aberto com a banda nova
+    let mut next_gpu: Option<std::sync::mpsc::Receiver<anyhow::Result<crate::hw_encoder::HwEncoder>>> = None;
     // Adaptação à rede: a cada 2 s olha a perda informada pelos espectadores
     let mut adapt = (Instant::now(), Instant::now());
     let mut last_idr = Instant::now() - Duration::from_secs(10);
@@ -219,13 +221,43 @@ fn encode_loop(
             // Trocar a banda recria o encoder (gera imagem completa): no máximo a cada 4 s,
             // e só se a mudança for relevante
             let relevant = (target as f32 - bitrate as f32).abs() / bitrate as f32 > 0.08;
-            if relevant && adapt.1.elapsed() >= Duration::from_secs(4) {
+            if relevant && adapt.1.elapsed() >= Duration::from_secs(4) && next_gpu.is_none() {
                 adapt.1 = Instant::now();
                 bitrate = target;
-                encoder = new_encoder(bitrate)?;
-                gpu = None;
-                last_idr = Instant::now();
+                match &hw {
+                    // Abrir o FFmpeg leva centenas de ms: o novo sobe em paralelo e o atual
+                    // continua mandando quadros até ele ficar pronto (antes isso congelava a imagem)
+                    Some((ffmpeg, kind)) => {
+                        let (ffmpeg, kind, dims) = (ffmpeg.clone(), *kind, buf.dimensions());
+                        let (tx, rx) = std::sync::mpsc::channel();
+                        std::thread::spawn(move || {
+                            let _ = tx.send(crate::hw_encoder::HwEncoder::new(&ffmpeg, &kind, dims, fps, bitrate));
+                        });
+                        next_gpu = Some(rx);
+                    }
+                    None => {
+                        encoder = new_encoder(bitrate)?;
+                        last_idr = Instant::now();
+                    }
+                }
                 eprintln!("Perda {:.1}%: banda ajustada para {:.1} Mbps", lost * 100.0, bitrate as f32 / 1e6);
+            }
+        }
+
+        if let Some(rx) = &next_gpu {
+            match rx.try_recv() {
+                Ok(Ok(new)) => {
+                    if new.dimensions == buf.dimensions() {
+                        gpu = Some(new);
+                    }
+                    next_gpu = None;
+                }
+                Ok(Err(e)) => {
+                    eprintln!("Falha ao trocar a banda na placa de vídeo: {e:#}");
+                    next_gpu = None;
+                }
+                Err(std::sync::mpsc::TryRecvError::Empty) => {}
+                Err(std::sync::mpsc::TryRecvError::Disconnected) => next_gpu = None,
             }
         }
 

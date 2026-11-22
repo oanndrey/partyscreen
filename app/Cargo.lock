@@ -1023,7 +1023,7 @@ checksum = "f38d5652c16fde515bb1ecef450ab0f6a219d619a7274976324d5e377f7dceba"
 
 [[package]]
 name = "partyscreen-ui"
-version = "1.0.7"
+version = "1.0.10"
 dependencies = [
  "console_error_panic_hook",
  "icons",

@@ -49,7 +49,7 @@ pub struct SourceInfo {
 }
 
 /// App em execução que pode ser silenciado na transmissão (lista do comando `list_audio_apps`)
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct AudioApp {
     pub bundle_id: String,
     pub name: String,
@@ -73,10 +73,38 @@ pub struct Config {
     /// Nick de quem transmite, mostrado para a sala
     #[serde(default)]
     pub name: String,
-    /// Bundle IDs (ex.: "com.hnc.Discord") cujo som não vai para a transmissão. Só no Mac.
+    /// Apps cujo som não vai para a transmissão: bundle IDs no Mac (ex.: "com.hnc.Discord"),
+    /// nome do executável no Windows (ex.: "discord.exe").
     #[serde(default)]
-    #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+    #[cfg_attr(not(any(windows, target_os = "macos")), allow(dead_code))]
     pub muted_apps: Vec<String>,
+}
+
+/// Apps de chamada de voz/vídeo conhecidos (pedaços do bundle ID ou do nome, minúsculos)
+#[cfg_attr(not(any(windows, target_os = "macos")), allow(dead_code))]
+const CALL_APPS: &[&str] = &[
+    "com.hnc.discord",
+    "discord",
+    "teamspeak",
+    "ts3client",
+    "us.zoom.",
+    "zoom.us",
+    "com.tinyspeck.slackmacgap",
+    "slack",
+    "com.microsoft.teams",
+    "microsoft teams",
+    "whatsapp",
+    "telegram",
+    "ru.keepcoder.telegram",
+    "skype",
+    "com.apple.facetime",
+    "facetime",
+];
+
+#[cfg_attr(not(any(windows, target_os = "macos")), allow(dead_code))]
+pub fn is_call_app(bundle_id: &str, name: &str) -> bool {
+    let (b, n) = (bundle_id.to_lowercase(), name.to_lowercase());
+    CALL_APPS.iter().any(|k| b.contains(k) || n.contains(k))
 }
 
 fn default_max_width() -> usize {

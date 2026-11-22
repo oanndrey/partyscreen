@@ -8,3 +8,5 @@ target/
 .env*
 # contém o segredo do TURN
 turn/docker-compose.yml
+# FFmpeg do Windows (134 MB, baixado pelo app/release.sh)
+app/src-tauri/windows-libs/ffmpeg.exe

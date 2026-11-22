@@ -6,6 +6,8 @@
 #[cfg(any(windows, target_os = "macos"))]
 mod audio;
 #[cfg(windows)]
+mod audio_windows;
+#[cfg(windows)]
 mod capture;
 #[cfg(target_os = "macos")]
 #[path = "capture_macos.rs"]
@@ -64,14 +66,18 @@ async fn thumbnail(source: session::Source) -> Result<String, String> {
 }
 
 /// Apps em execução para escolher quais não mandam som (sugeridos = apps de chamada,
-/// primeiro). Só no Mac; no Windows a lista vem vazia.
+/// primeiro).
 #[tauri::command]
 async fn list_audio_apps() -> Result<Vec<session::AudioApp>, String> {
     #[cfg(target_os = "macos")]
     return tauri::async_runtime::spawn_blocking(|| capture::audio_apps().map_err(|e| format!("{e:#}")))
         .await
         .map_err(|e| e.to_string())?;
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(windows)]
+    return tauri::async_runtime::spawn_blocking(|| audio_windows::audio_apps().map_err(|e| format!("{e:#}")))
+        .await
+        .map_err(|e| e.to_string())?;
+    #[cfg(not(any(windows, target_os = "macos")))]
     Ok(Vec::new())
 }
 
@@ -104,7 +110,54 @@ fn stop_share(state: State<'_, Sharing>) {
     }
 }
 
+/// No Windows o app não tem terminal: tudo que iria para o stderr (avisos, pânicos, erros
+/// do FFmpeg) vai para %LOCALAPPDATA%\\PartyScreen\\partyscreen.log, junto com o motivo
+/// se o app fechar sozinho.
+#[cfg(windows)]
+fn setup_log() {
+    use std::os::windows::io::AsRawHandle;
+    use windows::Win32::Foundation::HANDLE;
+    use windows::Win32::System::Console::{STD_ERROR_HANDLE, SetStdHandle};
+    use windows::Win32::System::Diagnostics::Debug::{EXCEPTION_POINTERS, SetUnhandledExceptionFilter};
+
+    unsafe extern "system" fn crash(info: *const EXCEPTION_POINTERS) -> i32 {
+        unsafe {
+            let rec = &*(*info).ExceptionRecord;
+            let addr = rec.ExceptionAddress as usize;
+            let base = windows::Win32::System::LibraryLoader::GetModuleHandleW(None).map(|h| h.0 as usize).unwrap_or(0);
+            eprintln!(
+                "FECHOU: exceção {:#010x} no endereço {addr:#x} (exe em {base:#x}, deslocamento {:#x})",
+                rec.ExceptionCode.0 as u32,
+                addr.wrapping_sub(base)
+            );
+        }
+        0 // segue o fluxo normal do Windows (relatório de erro)
+    }
+
+    let dir = std::env::var_os("LOCALAPPDATA").map(std::path::PathBuf::from).unwrap_or_else(std::env::temp_dir).join("PartyScreen");
+    let _ = std::fs::create_dir_all(&dir);
+    let path = dir.join("partyscreen.log");
+    // Log pequeno: recomeça quando passa de 1 MB
+    let big = std::fs::metadata(&path).is_ok_and(|m| m.len() > 1 << 20);
+    let Ok(file) = std::fs::OpenOptions::new().create(true).append(!big).write(true).truncate(big).open(&path) else { return };
+    unsafe {
+        let _ = SetStdHandle(STD_ERROR_HANDLE, HANDLE(file.as_raw_handle()));
+        SetUnhandledExceptionFilter(Some(crash));
+    }
+    std::mem::forget(file);
+    let since = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+    eprintln!("\n=== PartyScreen {} aberto (unix {since}) ===", env!("CARGO_PKG_VERSION"));
+}
+
 fn main() {
+    #[cfg(windows)]
+    {
+        let args: Vec<String> = std::env::args().skip(1).collect();
+        if args.first().is_some_and(|a| a == audio_windows::HELPER_ARG || a == audio_windows::LIST_ARG) {
+            audio_windows::helper_main(&args);
+        }
+        setup_log();
+    }
     tauri::Builder::default()
         .manage(Sharing {
             rt: tokio::runtime::Runtime::new().expect("runtime tokio"),

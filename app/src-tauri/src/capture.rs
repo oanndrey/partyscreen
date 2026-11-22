@@ -52,7 +52,8 @@ impl GraphicsCaptureApiHandler for Handler {
 /// Mantém a captura viva; soltar para a captura
 pub struct Capture {
     control: Option<CaptureControl<Handler, Error>>,
-    _audio: Option<crate::audio::LoopbackGuard>,
+    /// Captura de som (loopback inteiro ou por app); soltar para
+    _audio: Option<Box<dyn std::any::Any + Send>>,
 }
 
 impl Drop for Capture {
@@ -100,6 +101,7 @@ pub fn start(source: &Source, cfg: &Config, latest: Arc<Latest>, audio: Option<P
         };
     }
 
+    eprintln!("Iniciando captura de vídeo");
     let control = match source {
         Source::Display(i) => {
             let monitor = Monitor::from_index(i + 1).map_err(|_| anyhow::anyhow!("tela não encontrada"))?;
@@ -113,7 +115,21 @@ pub fn start(source: &Source, cfg: &Config, latest: Arc<Latest>, audio: Option<P
     }
     .map_err(|e| anyhow::anyhow!("falha ao iniciar a captura: {e}"))?;
 
-    let audio = audio.map(crate::audio::start_loopback).transpose()?;
+    // Janela de um app silenciado: sem som nenhum (como no Mac)
+    let window_muted = match source {
+        Source::Window(hwnd) => Window::from_raw_hwnd(*hwnd as *mut std::ffi::c_void)
+            .process_id()
+            .is_ok_and(|pid| crate::audio_windows::pid_muted(pid, &cfg.muted_apps)),
+        Source::Display(_) => false,
+    };
+    eprintln!("Iniciando som (silenciados: {:?})", cfg.muted_apps);
+    let audio: Option<Box<dyn std::any::Any + Send>> = match audio {
+        Some(_) if window_muted => None,
+        Some(packer) if !cfg.muted_apps.is_empty() => Some(Box::new(crate::audio_windows::start(packer, &cfg.muted_apps))),
+        Some(packer) => Some(Box::new(crate::audio::start_loopback(packer)?)),
+        None => None,
+    };
+    eprintln!("Captura iniciada");
     Ok(Capture { control: Some(control), _audio: audio })
 }
 

@@ -155,30 +155,6 @@ fn window_app_muted(content: &SCShareableContent, source: &Source, muted: &[Stri
         .is_some_and(|a| muted.iter().any(|m| *m == a.bundle_identifier()))
 }
 
-/// Apps de chamada de voz/vídeo conhecidos (pedaços do bundle ID ou do nome, minúsculos)
-const CALL_APPS: &[&str] = &[
-    "com.hnc.discord",
-    "discord",
-    "teamspeak",
-    "us.zoom.",
-    "zoom.us",
-    "com.tinyspeck.slackmacgap",
-    "slack",
-    "com.microsoft.teams",
-    "microsoft teams",
-    "whatsapp",
-    "telegram",
-    "ru.keepcoder.telegram",
-    "skype",
-    "com.apple.facetime",
-    "facetime",
-];
-
-fn is_call_app(bundle_id: &str, name: &str) -> bool {
-    let (b, n) = (bundle_id.to_lowercase(), name.to_lowercase());
-    CALL_APPS.iter().any(|k| b.contains(k) || n.contains(k))
-}
-
 /// Apps em execução com janela, para escolher quais não mandam som
 pub fn audio_apps() -> anyhow::Result<Vec<AudioApp>> {
     let content = content()?;
@@ -197,7 +173,7 @@ pub fn audio_apps() -> anyhow::Result<Vec<AudioApp>> {
             continue;
         }
         let name = a.application_name();
-        let suggested = is_call_app(&bundle_id, &name);
+        let suggested = crate::session::is_call_app(&bundle_id, &name);
         // Apps de chamada entram mesmo sem janela (ex.: Discord só na barra de menus)
         if !suggested && !with_window.contains(&a.process_id()) {
             continue;

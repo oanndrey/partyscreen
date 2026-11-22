@@ -3,7 +3,8 @@
     "resources": {
       "windows-libs/libstdc++-6.dll": "libstdc++-6.dll",
       "windows-libs/libgcc_s_seh-1.dll": "libgcc_s_seh-1.dll",
-      "windows-libs/libwinpthread-1.dll": "libwinpthread-1.dll"
+      "windows-libs/libwinpthread-1.dll": "libwinpthread-1.dll",
+      "windows-libs/ffmpeg.exe": "ffmpeg.exe"
     }
   }
 }

@@ -9,6 +9,13 @@ if [ -n "$1" ]; then
 fi
 V=$(grep '"version"' src-tauri/tauri.conf.json | head -1 | sed 's/.*"\([0-9.]*\)".*/\1/')
 cd src-tauri
+# FFmpeg do Windows (codificação na placa de vídeo); não vai pro git por ser grande
+if [ ! -f windows-libs/ffmpeg.exe ]; then
+  T=$(mktemp -d)
+  gh release download latest -R BtbN/FFmpeg-Builds -p 'ffmpeg-n8.1-latest-win64-lgpl-8.1.zip' -D "$T"
+  unzip -q -j "$T"/*.zip '*/bin/ffmpeg.exe' -d windows-libs
+  rm -rf "$T"
+fi
 cargo tauri build --target x86_64-pc-windows-gnu --bundles nsis
 cargo tauri build --bundles app
 rm -f ~/Desktop/PartyScreen_*_x64-setup.exe
