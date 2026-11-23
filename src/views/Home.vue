@@ -2,9 +2,12 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Icon from '../components/Icon.vue'
+import Fundo from '../components/Fundo.vue'
 
 const router = useRouter()
 const code = ref('')
+// Ainda não há página de download própria; o repositório tem as instruções
+const DOWNLOAD = 'https://github.com/oanndrey/partyscreen'
 
 function join() {
   // Aceita tanto o código quanto o link inteiro colado
@@ -16,61 +19,73 @@ function join() {
 </script>
 
 <template>
-  <header class="topbar">
-    <Icon name="monitorPlay" class="muted" />
-    <h1>Início</h1>
-  </header>
-  <section class="home">
-    <h2 class="title">Bem-vindo ao PartyScreen</h2>
-    <p class="muted">Assista à tela dos amigos com um código. Sem cadastro.</p>
+  <div class="page">
+    <Fundo />
 
-    <div class="cards">
-      <form class="card" @submit.prevent="join">
-        <div class="bubble green"><Icon name="monitorPlay" :size="24" /></div>
-        <div>
-          <div class="card-title">Entrar numa sala</div>
-          <div class="muted small">Digite o código ou cole o link que você recebeu.</div>
-        </div>
-        <div class="row">
-          <input v-model="code" class="code-input" placeholder="Ex.: K7QX2M" autocomplete="off" />
-          <button type="submit" class="primary" :disabled="!code.trim()">Entrar</button>
-        </div>
+    <header class="topbar">
+      <router-link to="/" class="brand"><img src="/logo.svg" alt="" /><span>PartyScreen</span></router-link>
+      <div class="grow"></div>
+      <a class="btn secondary" :href="DOWNLOAD" target="_blank" rel="noopener"><Icon name="download" :size="18" /> Baixar o app</a>
+    </header>
+
+    <main class="home">
+      <img class="hero-logo" src="/logo-brilho.png" alt="" />
+      <h1 class="display title">Assista à tela dos amigos.</h1>
+      <p class="sub">Digite o código da sala ou cole o link que você recebeu. Sem cadastro.</p>
+
+      <form class="join glass" @submit.prevent="join">
+        <input v-model="code" class="code-input" placeholder="Código ou link da sala" autocomplete="off" spellcheck="false" />
+        <button type="submit" class="primary" :disabled="!code.trim()"><Icon name="arrowRight" :size="18" /> Entrar</button>
       </form>
 
-      <div class="card">
-        <div class="bubble orange"><Icon name="screenShare" :size="24" /></div>
-        <div>
-          <div class="card-title">Quer transmitir?</div>
-          <div class="muted small">Para transmitir a tela, com som e boa qualidade, use o app PartyScreen no computador.</div>
+      <div class="cards">
+        <div class="card-glass glass">
+          <div class="bubble orange"><Icon name="screenShare" /></div>
+          <div>
+            <h3 class="display">Quer transmitir?</h3>
+            <p>Use o app PartyScreen no computador para transmitir a tela inteira ou uma janela, com som.</p>
+          </div>
+          <div class="grow"></div>
+          <a class="btn primary" :href="DOWNLOAD" target="_blank" rel="noopener"><Icon name="download" :size="18" /> Baixar o app</a>
         </div>
-        <button @click="router.push('/compartilhar')">Transmitir pelo navegador</button>
+        <div class="card-glass glass">
+          <div class="bubble"><Icon name="monitorPlay" /></div>
+          <div>
+            <h3 class="display">Sem instalar nada</h3>
+            <p>Dá para transmitir direto pelo navegador. A qualidade fica menor que no app.</p>
+          </div>
+          <div class="grow"></div>
+          <button class="secondary" @click="router.push('/compartilhar')">Transmitir pelo navegador</button>
+        </div>
       </div>
-    </div>
-  </section>
+    </main>
+  </div>
 </template>
 
 <style scoped>
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 48px;
-  padding: 0 16px;
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 20%);
+.page { position: relative; isolation: isolate; height: 100%; display: flex; flex-direction: column; overflow-y: auto; }
+.home { width: 100%; max-width: 760px; margin: 0 auto; padding: 56px 20px 64px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.hero-logo { width: 150px; height: auto; margin-bottom: 8px; }
+.title { font-size: clamp(30px, 5vw, 44px); line-height: 1.15; letter-spacing: -0.03em; }
+.sub { margin-top: 12px; font-size: 17px; line-height: 1.55; color: rgb(255 255 255 / 82%); }
+
+.join { display: flex; gap: 8px; width: 100%; max-width: 520px; margin-top: 40px; padding: 8px; border-radius: 14px; background: rgb(255 255 255 / 10%); border-color: rgb(255 255 255 / 18%); }
+.code-input { flex: 1; height: 48px; padding: 0 14px; border: 0; background: transparent; font-size: 16px; }
+.code-input:focus { box-shadow: none; }
+.join button { height: 48px; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; width: 100%; margin-top: 72px; text-align: left; }
+.card-glass { display: flex; flex-direction: column; gap: 16px; padding: 24px; border-radius: 16px; }
+.card-glass h3 { font-size: 15px; }
+.card-glass p { margin-top: 4px; font-size: 14px; line-height: 1.5; color: rgb(255 255 255 / 66%); }
+.card-glass .btn, .card-glass button { align-self: flex-start; }
+.bubble { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--raised); color: var(--text-strong); }
+.bubble.orange { background: var(--primary-soft); color: var(--primary); }
+
+@media (max-width: 640px) {
+  .topbar .btn span, .topbar .btn { font-size: 13px; }
+  .home { padding-top: 32px; }
+  .hero-logo { width: 110px; }
+  .cards { margin-top: 48px; }
 }
-.topbar h1 { font-size: 15px; font-weight: 600; }
-.home { width: 100%; max-width: 768px; margin: 0 auto; padding: 40px 16px; }
-.title { font-size: 1.5rem; font-weight: 700; }
-.home > .muted { margin: 4px 0 0; }
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 32px; }
-.card { gap: 16px; }
-.card-title { font-weight: 600; color: var(--text-strong); }
-.small { font-size: .875rem; margin-top: 2px; }
-.bubble { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; }
-.bubble.green { background: rgb(35 165 90 / 15%); color: var(--success); }
-.bubble.orange { background: rgb(253 90 16 / 15%); color: var(--primary); }
-.code-input { font-family: ui-monospace, monospace; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
-.code-input::placeholder { letter-spacing: normal; font-family: Inter, sans-serif; font-weight: 400; text-transform: none; }
 </style>

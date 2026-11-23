@@ -1,21 +1,40 @@
-/* Mesmo tema do app PartyScreen (paleta do Discord + laranja) */
+/* Tema do PartyScreen (redesign 2026-11): preto + laranja, vidro sobre degradê */
 :root {
-  --bg: #313338;
-  --card: #2b2d31;
-  --rail: #1e1f22;
-  --elevated: #232428;
-  --accent: #35373c;
-  --input: #1e1f22;
-  --text: #dbdee1;
-  --text-strong: #f2f3f5;
-  --muted: #949ba4;
+  --bg: #0a0a0b;
+  --surface: #131315;
+  --raised: #1b1b1e;
+  --border: #232327;
+  --border-strong: #34343a;
+  --text-strong: #f4f4f5;
+  --text: #c9c9cf;
+  --muted: #85858e;
   --primary: #fd5a10;
-  --danger: #da373c;
-  --success: #23a55a;
-  --warning: #f0b232;
-  --border: rgb(0 0 0 / 25%);
+  --primary-hover: #e44f0c;
+  --primary-soft: #2a160c;
+  --danger: #f03a3a;
+  --danger-hover: #d42d2d;
+  --success: #2bc46d;
+  --warning: #f2b33d;
+
+  /* Vidro sobre o degradê */
+  --glass: rgb(255 255 255 / 6%);
+  --glass-strong: rgb(255 255 255 / 10%);
+  --glass-border: rgb(255 255 255 / 14%);
+  --on-glass: rgb(255 255 255 / 86%);
+  --on-glass-muted: rgb(255 255 255 / 62%);
+
+  /* Nomes antigos, usados pela página de transmitir pelo navegador (Host.vue) */
+  --card: var(--surface);
+  --input: var(--raised);
+  --elevated: var(--raised);
+  --accent: var(--raised);
+
+  --font: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Unbounded', var(--font);
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+
   color-scheme: dark;
-  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font);
 }
 
 * { box-sizing: border-box; }
@@ -27,78 +46,96 @@ body {
   color: var(--text);
   line-height: 1.5;
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-h1, h2 { color: var(--text-strong); margin: 0; }
+h1, h2, h3 { color: var(--text-strong); margin: 0; }
+p { margin: 0; }
 .muted { color: var(--muted); }
+.display { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.02em; }
+.mono { font-family: var(--font-mono); }
 
-/* Barras de rolagem finas, como no Discord */
-* { scrollbar-width: thin; scrollbar-color: #1a1b1e transparent; }
+* { scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 12%) transparent; }
 
-button {
+/* Botões */
+button, .btn {
   font: inherit;
-  padding: 9px 16px;
-  border-radius: 6px;
-  border: 0;
-  background: #4e5058;
-  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: var(--glass-strong);
+  color: var(--text-strong);
   cursor: pointer;
   white-space: nowrap;
-  font-weight: 500;
-  transition: background .15s;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background .15s, color .15s, opacity .15s;
 }
-button:hover:not(:disabled) { background: #6d6f78; }
-button:disabled { opacity: .5; cursor: default; }
-button.primary { background: var(--primary); }
-button.primary:hover:not(:disabled) { background: #e44f0c; }
-button.danger { background: var(--danger); }
-button.danger:hover:not(:disabled) { background: #a12828; }
+button:hover:not(:disabled), .btn:hover { background: rgb(255 255 255 / 16%); }
+button:disabled { opacity: .45; cursor: default; }
+button.primary, .btn.primary { background: var(--primary); color: #fff; }
+button.primary:hover:not(:disabled), .btn.primary:hover { background: var(--primary-hover); }
+button.danger { background: var(--danger); color: #fff; }
+button.danger:hover:not(:disabled) { background: var(--danger-hover); }
+button.secondary, .btn.secondary { background: var(--glass-strong); border-color: rgb(255 255 255 / 16%); }
+button.ghost { background: transparent; color: var(--on-glass-muted); }
+button.ghost:hover:not(:disabled) { background: rgb(255 255 255 / 6%); color: var(--text-strong); }
+
+/* Botão só com ícone */
+.icon-btn { width: 40px; padding: 0; }
+.icon-btn.on, .icon-btn.on:hover:not(:disabled) { background: var(--text-strong); color: var(--bg); }
 
 input:not([type]), input[type='text'], input[readonly] {
   font: inherit;
   width: 100%;
   min-width: 0;
   padding: 10px 12px;
-  border-radius: 6px;
-  border: 0;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
   outline: none;
-  background: var(--input);
+  background: rgb(5 5 6 / 45%);
   color: var(--text-strong);
 }
-input:focus { box-shadow: 0 0 0 2px var(--primary); }
-input::placeholder { color: var(--muted); }
+input:focus { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+input::placeholder { color: var(--on-glass-muted); }
+
+/* Superfície de vidro */
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Barra superior comum às telas */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 60px;
+  padding: 0 16px 0 20px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+}
+.brand { display: flex; align-items: center; gap: 10px; color: var(--text-strong); text-decoration: none; }
+.brand img { height: 22px; width: auto; }
+.brand span { font-family: var(--font-display); font-weight: 600; font-size: 14px; letter-spacing: -0.02em; }
 
 .row { display: flex; gap: 8px; align-items: center; }
 .grow { flex: 1; }
 
-.card {
-  background: var(--card);
-  border-radius: 8px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: flex-start;
-}
-.card .row { width: 100%; }
-
-.label { display: block; font-size: .75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-.code { font-size: 1.5rem; letter-spacing: .15em; font-family: ui-monospace, monospace; color: var(--text-strong); }
-
-/* Página antiga de compartilhar pelo navegador (Host.vue) */
-.session { width: 100%; max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
-.session h1 { font-size: 1.5rem; }
-.session-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
-.check { display: flex; gap: 8px; align-items: center; color: var(--muted); }
-.share { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 20px; margin-bottom: 16px; }
-.stage { position: relative; background: #000; border-radius: 8px; overflow: hidden; aspect-ratio: 16 / 9; }
-.stage video { width: 100%; height: 100%; object-fit: contain; display: block; }
-.placeholder { position: absolute; inset: 0; display: grid; place-items: center; }
+.label { display: block; font-size: 11px; font-weight: 700; color: var(--on-glass-muted); text-transform: uppercase; letter-spacing: .06em; }
 
 .spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid rgb(255 255 255 / 12%);
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgb(255 255 255 / 14%);
   border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -109,8 +146,29 @@ input::placeholder { color: var(--muted); }
 .dot.live { background: var(--success); }
 
 .error {
-  background: rgb(218 55 60 / 15%);
+  background: rgb(240 58 58 / 15%);
   color: #ffb3b5;
   padding: 10px 14px;
-  border-radius: 6px;
+  border-radius: 10px;
 }
+
+/* Página antiga de compartilhar pelo navegador (Host.vue) */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+.card .row { width: 100%; }
+.code { font-size: 1.5rem; letter-spacing: .15em; font-family: var(--font-mono); color: var(--text-strong); }
+.session { width: 100%; max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; overflow-y: auto; }
+.session h1 { font-family: var(--font-display); font-weight: 600; font-size: 1.4rem; letter-spacing: -0.02em; }
+.session-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.check { display: flex; gap: 8px; align-items: center; color: var(--muted); }
+.share { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 20px; margin-bottom: 16px; }
+.stage { position: relative; background: #000; border-radius: 14px; overflow: hidden; aspect-ratio: 16 / 9; }
+.stage video { width: 100%; height: 100%; object-fit: contain; display: block; }
