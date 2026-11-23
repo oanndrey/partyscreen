@@ -121,7 +121,6 @@ input::placeholder { color: var(--on-glass-muted); }
   height: 60px;
   padding: 0 16px 0 20px;
   flex-shrink: 0;
-  border-bottom: 1px solid rgb(255 255 255 / 10%);
 }
 .brand { display: flex; align-items: center; gap: 10px; color: var(--text-strong); text-decoration: none; }
 .brand img { height: 22px; width: auto; }

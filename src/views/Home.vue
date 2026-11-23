@@ -29,7 +29,6 @@ function join() {
     </header>
 
     <main class="home">
-      <img class="hero-logo" src="/logo-brilho.png" alt="" />
       <h1 class="display title">Assista à tela dos amigos.</h1>
       <p class="sub">Digite o código da sala ou cole o link que você recebeu. Sem cadastro.</p>
 
@@ -64,8 +63,7 @@ function join() {
 
 <style scoped>
 .page { position: relative; isolation: isolate; height: 100%; display: flex; flex-direction: column; overflow-y: auto; }
-.home { width: 100%; max-width: 760px; margin: 0 auto; padding: 56px 20px 64px; display: flex; flex-direction: column; align-items: center; text-align: center; }
-.hero-logo { width: 150px; height: auto; margin-bottom: 8px; }
+.home { width: 100%; max-width: 760px; margin: 0 auto; padding: 96px 20px 64px; display: flex; flex-direction: column; align-items: center; text-align: center; }
 .title { font-size: clamp(30px, 5vw, 44px); line-height: 1.15; letter-spacing: -0.03em; }
 .sub { margin-top: 12px; font-size: 17px; line-height: 1.55; color: rgb(255 255 255 / 82%); }
 
@@ -84,8 +82,7 @@ function join() {
 
 @media (max-width: 640px) {
   .topbar .btn span, .topbar .btn { font-size: 13px; }
-  .home { padding-top: 32px; }
-  .hero-logo { width: 110px; }
+  .home { padding-top: 56px; }
   .cards { margin-top: 48px; }
 }
 </style>
